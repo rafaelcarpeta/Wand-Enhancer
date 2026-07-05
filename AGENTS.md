@@ -27,7 +27,7 @@ This repository patches the Wand Electron app from a .NET Framework WPF desktop 
 
 ## ASAR Patch Pipeline
 
-- Preserve and restore both `resources/app.asar` and `resources/app.asar.unpacked` backups.
+- `EnsureEmbeddedAsarIntegrityValidationDisabled()` is called before backup/restore. It locates the Electron fuse sentinel in the target `.exe` and sets `EnableEmbeddedAsarIntegrityValidation` to `'0'`. This prevents Electron from rejecting the repacked `app.asar` due to integrity hash mismatch. Only necessary on Wine/Proton — native Windows builds don't trigger the integrity rejection, but the fuse toggle is harmless either way.
 - Inject `web-panel/dist` as `remote-panel/`; it must already contain `bridge.cjs` and generated default renderer scripts under `renderer-scripts/`. Selected/local custom renderer scripts are then copied under `remote-panel/renderer-scripts`.
 - Do not commit extracted `.source/` or `.sources/` output. Recreate it only for reverse-engineering sessions.
 - `AsarSharp.AsarExtractor.ExtractAll` must skip unpacked entries when their source path equals the destination (in-place extraction is a self-copy that fails on locked files like `TrainerLib_x64.dll`) and silently skip unpacked entries whose source is missing on disk (e.g. `auxiliary/GameLauncher.exe` removed by an installer). Do not reintroduce hard failure on either case.

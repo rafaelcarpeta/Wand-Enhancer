@@ -7,7 +7,7 @@ The newest entry must match the version in `WandEnhancer/Properties/AssemblyInfo
 
 ### Features
 
-- Automatically disables the Electron `EnableEmbeddedAsarIntegrityValidation` fuse in the target binary before patching. This fixes the "GUI not opening after patch" issue caused by Electron rejecting the repacked `app.asar` due to an integrity hash mismatch.
+- Automatically disables the Electron `EnableEmbeddedAsarIntegrityValidation` fuse in the target binary before patching. This fixes the "GUI not opening after patch" issue on Wine/Proton caused by Electron rejecting the repacked `app.asar` due to an integrity hash mismatch. Not needed on native Windows, but the fuse toggle is harmless either way.
 
 ### Fixes
 
