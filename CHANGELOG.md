@@ -3,7 +3,11 @@
 This file is the source of truth for release notes.
 The newest entry must match the version in `WandEnhancer/Properties/AssemblyInfo.cs`.
 
-## [1.0.9.3] - 2026-07-04
+## [1.0.9.4] - 2026-07-05
+
+### Features
+
+- Automatically disables the Electron `EnableEmbeddedAsarIntegrityValidation` fuse in the target binary before patching. This fixes the "GUI not opening after patch" issue caused by Electron rejecting the repacked `app.asar` due to an integrity hash mismatch.
 
 ### Fixes
 
