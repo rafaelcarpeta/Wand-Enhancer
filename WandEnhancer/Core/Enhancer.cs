@@ -437,9 +437,73 @@ namespace WandEnhancer.Core
             _logger("[ENHANCER] Proxy DLL attached", ELogType.Info);
         }
 
+        private const string ElectronFuseSentinel = "dL7pKGdnNz796PbbjQWNKmHXBZaB9tsX";
+        private const int AsarIntegrityFuseIndex = 4;
+
+        private void EnsureEmbeddedAsarIntegrityValidationDisabled()
+        {
+            var exePath = Path.Combine(_weModConfig.RootDirectory, _weModConfig.ExecutableName);
+            if (!File.Exists(exePath))
+            {
+                _logger("[ENHANCER] Skip fuse check: WeMod.exe not found", ELogType.Warn);
+                return;
+            }
+
+            var bytes = File.ReadAllBytes(exePath);
+            var sentinelBytes = System.Text.Encoding.ASCII.GetBytes(ElectronFuseSentinel);
+            var sentinelPos = IndexOfBytes(bytes, sentinelBytes);
+            if (sentinelPos < 0)
+            {
+                _logger("[ENHANCER] Could not locate Electron fuse sentinel. If the GUI does not open after patching, run: npx @electron/fuses write --app \"WeMod.exe\" EnableEmbeddedAsarIntegrityValidation=off", ELogType.Warn);
+                return;
+            }
+
+            var fusesStart = sentinelPos + sentinelBytes.Length + 2; // +2 to skip version and length bytes
+            if (fusesStart + AsarIntegrityFuseIndex >= bytes.Length)
+            {
+                _logger("[ENHANCER] Fuse position exceeds binary size, cannot patch automatically", ELogType.Warn);
+                return;
+            }
+            var fuseByte = bytes[fusesStart + AsarIntegrityFuseIndex];
+            if (fuseByte == (byte)'0')
+            {
+                _logger("[ENHANCER] EnableEmbeddedAsarIntegrityValidation is already disabled", ELogType.Info);
+                return;
+            }
+
+            if (fuseByte != (byte)'1')
+            {
+                _logger("[ENHANCER] Unexpected fuse byte value, cannot patch automatically", ELogType.Warn);
+                return;
+            }
+
+            bytes[fusesStart + AsarIntegrityFuseIndex] = (byte)'0';
+            File.WriteAllBytes(exePath, bytes);
+            _logger("[ENHANCER] Disabled EnableEmbeddedAsarIntegrityValidation fuse. Repacked app.asar will now be accepted by Electron.", ELogType.Success);
+        }
+
+        private static int IndexOfBytes(byte[] haystack, byte[] needle)
+        {
+            for (int i = 0; i <= haystack.Length - needle.Length; i++)
+            {
+                bool found = true;
+                for (int j = 0; j < needle.Length; j++)
+                {
+                    if (haystack[i + j] != needle[j])
+                    {
+                        found = false;
+                        break;
+                    }
+                }
+                if (found) return i;
+            }
+            return -1;
+        }
+
         public void Patch()
         {
             Common.TryKillProcess(_weModConfig.BrandName);
+            EnsureEmbeddedAsarIntegrityValidationDisabled();
             if (!File.Exists(_backupPath))
             {
                 _logger("[ENHANCER] Creating backup...", ELogType.Info);
