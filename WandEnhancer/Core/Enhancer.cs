@@ -26,6 +26,7 @@ namespace WandEnhancer.Core
         private const string RemoteRendererScriptsDirectoryName = "renderer-scripts";
         private const string EmbeddedRemotePanelDistPrefix = "remote-panel/dist/";
         private const string AppBundleFilePrefix = "app-";
+        private const string OverlayBundleFilePrefix = "overlay-";
         private const string AppBundleFileSuffix = ".bundle.js";
         private const string IndexBundleFileName = "index.js";
         private const string JavaScriptFileExtension = ".js";
@@ -182,6 +183,8 @@ namespace WandEnhancer.Core
             string fileName = Path.GetFileName(filePath);
             return fileName.Equals(IndexBundleFileName, StringComparison.OrdinalIgnoreCase)
                 || (fileName.StartsWith(AppBundleFilePrefix, StringComparison.OrdinalIgnoreCase)
+                    && fileName.EndsWith(AppBundleFileSuffix, StringComparison.OrdinalIgnoreCase))
+                || (fileName.StartsWith(OverlayBundleFilePrefix, StringComparison.OrdinalIgnoreCase)
                     && fileName.EndsWith(AppBundleFileSuffix, StringComparison.OrdinalIgnoreCase));
         }
 
